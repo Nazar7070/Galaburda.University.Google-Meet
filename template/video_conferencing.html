@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Відеоконференція</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <h1>Відеоконференція</h1>
+
+    <div id="videoContainer">
+        <video id="localVideo" autoplay></video>
+    </div>
+
+    <div id="controls">
+        <button class="btn" id="toggleCamera">Увімкнути/вимкнути камеру</button>
+        <button class="btn" id="toggleMicrophone">Увімкнути/вимкнути мікрофон</button>
+        <button class="btn" id="shareScreen">Поділитися екраном</button>
+        <button class="btn" id="hangup">Вийти</button>
+    </div>
+
+    <script>
+        var localStream;
+
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then(function(stream) {
+            localStream = stream;
+            var videoElement = document.getElementById('localVideo');
+            videoElement.srcObject = stream;
+        })
+        .catch(function(err) {
+            console.error('Помилка при отриманні доступу до медіапотоку: ', err);
+        });
+
+        var toggleCameraButton = document.getElementById('toggleCamera');
+        var toggleMicrophoneButton = document.getElementById('toggleMicrophone');
+        var shareScreenButton = document.getElementById('shareScreen');
+        var hangupButton = document.getElementById('hangup');
+
+        toggleCameraButton.addEventListener('click', function() {
+            var videoTrack = localStream.getVideoTracks()[0];
+            videoTrack.enabled = !videoTrack.enabled;
+        });
+
+        toggleMicrophoneButton.addEventListener('click', function() {
+            var audioTrack = localStream.getAudioTracks()[0];
+            audioTrack.enabled = !audioTrack.enabled;
+        });
+
+        shareScreenButton.addEventListener('click', function() {
+            navigator.mediaDevices.getDisplayMedia({ video: true })
+            .then(function(screenStream) {
+                var videoElement = document.createElement('video');
+                videoElement.srcObject = screenStream;
+                videoElement.autoplay = true;
+                document.body.appendChild(videoElement);
+            })
+            .catch(function(err) {
+                console.error('Помилка при отриманні доступу до екрану: ', err);
+            });
+        });
+
+        hangupButton.addEventListener('click', function() {
+            localStream.getTracks().forEach(function(track) {
+                track.stop();
+            });
+            window.location.href = "index.html";
+        });
+    </script>
+</body>
+</html>
